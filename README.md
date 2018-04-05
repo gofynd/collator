@@ -30,8 +30,6 @@ Collator is a multi - API testing suite to compare responses from different inpu
 
 ## Installation
 
-...
-
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.5.4.
 
 ## Development server
