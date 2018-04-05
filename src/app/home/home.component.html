@@ -1,0 +1,70 @@
+<p>{{request_status}}</p>
+<form enctype='application/json'>
+  Model: <select name="xyz" [(ngModel)]="selectedModel" (change)="modelSelected()">
+    <option *ngFor="let model of models" value= {{model}}>{{model}}</option>
+  </select>
+  Url: <input type="text" name="prediction_url" [(ngModel)]="prediction_url">
+  Image Urls: <textarea name="query_image_urls" cols="55" rows="5" [(ngModel)]="query_image_urls"></textarea>
+  Params: <textarea name="query_params" cols="30" rows="8" [(ngModel)]="query_params"></textarea>
+   <button mat-button color="primary" (click)="addItem(false)">Query</button>
+    <button mat-button color="primary" (click)="addItem(true)">Query and Append</button>
+ <!--  <input type="submit" class="btn" value="Query" >
+  <input type="submit" class="btn" value="Query and Append" > -->
+</form>
+<br/>
+<ng-progress  [minimum]="0.15" [maximum]="1" [speed]="200" [ease]="'linear'"
+              [showSpinner]="true" [direction]="'leftToRightIncreased'"
+              [color]="'red'" [trickleSpeed]="250" [thick]="true"
+></ng-progress>
+<div class="example-container mat-elevation-z8">
+  <mat-table #table [dataSource]="dataSource">
+
+    <!--- Note that these columns can be defined in any order.
+          The actual rendered columns are set as a property on the row definition" -->
+
+    <!-- Position Column -->
+    <ng-container matColumnDef="image">
+      <mat-header-cell style="text-align: center;" *matHeaderCellDef> Source Image </mat-header-cell>
+      <mat-cell *matCellDef="let element"> <img src={{element.image}} alt="image" style="height:200px; margin: auto; display: block;"/> </mat-cell>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container *ngIf="selectedModel === 'colors'">
+    <ng-container *ngFor="let key of displayedColumns; let j=index">
+    <ng-container *ngIf="key!='image'" matColumnDef={{key}}>
+      <mat-header-cell style="text-align: center;" *matHeaderCellDef> {{key}} </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <ul style="margin:0px;">
+          <li *ngFor="let clr of element[key].values; let i=index" class="clr-photo" padding="5px">
+            <div class="main-cnt">
+              <div class="clr-opt" [style.background-color]="'rgb(' + clr.rgbValue + ')'">
+                <div class="clr-txt" [style.color]="clr.rgbTextColor">{{clr.primary}} | {{clr.secondary}} | {{clr.tertiary}} | {{clr.web_colors}}</div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </mat-cell>
+    </ng-container>
+    </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="selectedModel === 'visual-search'">
+      <ng-container *ngFor="let key of displayedColumns; let j=index">
+        <ng-container *ngIf="key!='image'" matColumnDef={{key}}>
+          <mat-header-cell style="text-align: center;" *matHeaderCellDef> {{key}} </mat-header-cell>
+          <mat-cell *matCellDef="let element">
+            <div class="flex-container">
+              <div class="result-item" *ngFor="let clr of element[key]; let i=index">
+                  <img src={{clr.path}} alt="image" style="height:200px;"/>
+                <div class="bottom-center">{{clr.category}}</div>
+              </div>
+            </div>
+          </mat-cell>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+</div>
