@@ -14,6 +14,7 @@ export class HomeComponent implements OnInit {
   public columns = [];
   public count = 0;
   public max = 0;
+  public is_append;
 
 	displayedColumns = [];
 	//request_status = "Authenticating .."
@@ -63,7 +64,7 @@ export class HomeComponent implements OnInit {
 		var rows = JSON.parse(this.query_image_urls);
 		var columns = JSON.parse(this.query_params);
 
-		var columns_combinations = getCombinations(columns, 0, [], {});
+		var columns_combinations = this.getCombinations(columns, 0, [], {});
 		this.displayedColumns=["image"];
     if(!this.is_append){
 		  this.ELEMENT = [];
@@ -81,7 +82,7 @@ export class HomeComponent implements OnInit {
 				var vert = rows[j];
 				var params={"image_url":vert, "model_name":this.selectedModel};
 				params = Object.assign({}, params, hors);
-				postrequest(this.prediction_url, params, (parseInt(j)+initial_length).toString(), column_name, this);
+				this.postrequest(this.prediction_url, params, (parseInt(j)+initial_length).toString(), column_name, this);
 			}
 
 		}
@@ -90,7 +91,7 @@ export class HomeComponent implements OnInit {
 	//}
 	}
 	
-	function getCombinations(options, optionIndex, results, current) {
+	getCombinations(options, optionIndex, results, current) {
 	    var allKeys = Object.keys(options);
 	    var optionKey = allKeys[optionIndex];
 
@@ -100,7 +101,7 @@ export class HomeComponent implements OnInit {
 	        current[optionKey] = vals[i];
 
 	        if (optionIndex + 1 < allKeys.length) {
-	            getCombinations(options, optionIndex + 1, results, current);
+	            this.getCombinations(options, optionIndex + 1, results, current);
 	        } else {
 	            // The easiest way to clone an object.
 	            var res = JSON.parse(JSON.stringify(current));
@@ -115,7 +116,8 @@ export class HomeComponent implements OnInit {
 	}
 
 
-	function onresponse(xhr, url, params, i, j, context) {
+	onresponse(xhr, url, params, i, j, context) {
+    var row;
     if (xhr.readyState === 4){
       context.count++;
       context.ngProgress.set(context.count/context.max);
@@ -126,9 +128,9 @@ export class HomeComponent implements OnInit {
         } else{
           //context.request_status = "Success";
           if(context.selectedModel=="colors"){
-            var row = postprocesscolor(json);
+            row = this.postprocesscolor(json);
           } else if(context.selectedModel=="visual-search"){
-            var row = postprocessvisualsearch(json);
+            row = this.postprocessvisualsearch(json);
           }
           if (typeof context.ELEMENT[i] == 'undefined'){
             context.ELEMENT[i]={};
@@ -138,7 +140,7 @@ export class HomeComponent implements OnInit {
 
           if(context.count==context.max){
             context.ngProgress.done();
-            context.dataSource = new MatTableDataSource<[]>(context.ELEMENT);
+           context.dataSource = new MatTableDataSource(context.ELEMENT);
           }
         }
         console.log(json);
@@ -146,7 +148,7 @@ export class HomeComponent implements OnInit {
     }
 	}
 
-  function postprocesscolor(json){
+  postprocesscolor(json){
     let row={};
     row['values']=[];
     for(let k in json){
@@ -162,28 +164,23 @@ export class HomeComponent implements OnInit {
     return row;
   }
 
-  function postprocessvisualsearch(json){
+  postprocessvisualsearch(json){
     let row=json[0];
     return row;
   }
 
-	function postrequest(url, params, i, j, context){
+ 
+
+	postrequest(url, params, i, j, context){
 		var xhr = new XMLHttpRequest();
 		xhr.open("POST", url, true);
 		xhr.setRequestHeader("Content-type", "application/json");
-		xhr.onreadystatechange = function() { 
-      onresponse(xhr, url, params, i, j, context) 
-    }
+		xhr.onreadystatechange = () => { 
+      this.onresponse(xhr, url, params, i, j, context);
+    };
 		var data = JSON.stringify(params);
 		xhr.send(data);
 	}
 
-	export interface Element {
-		image: string;
-		primary: string;
-		secondary: string;
-		tertiary: string;
-		web_colors: string;
-		rgbValue: string;
-	}
+}
 
